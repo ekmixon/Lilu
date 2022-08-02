@@ -215,14 +215,11 @@ _found = False
 
 def _load_lib(path):
     lib_file = join(path, _lib)
-    #print("Trying to load %s" %lib_file)
     if os.path.exists(lib_file):
         return ctypes.cdll.LoadLibrary(lib_file)
-    else:
         # if we're on linux, try again with .so.3 extension
-        if lib_file.endswith('.so'):
-            if os.path.exists(lib_file + '.3'):
-                return ctypes.cdll.LoadLibrary(lib_file + '.3')
+    if lib_file.endswith('.so') and os.path.exists(f'{lib_file}.3'):
+        return ctypes.cdll.LoadLibrary(f'{lib_file}.3')
     return None
 
 _cs = None
@@ -399,8 +396,6 @@ def cs_disasm_quick(arch, mode, code, offset, count=0):
         if status != CS_ERR_OK:
             raise CsError(status)
         return
-        yield
-
     status = _cs.cs_close(ctypes.byref(csh))
     if status != CS_ERR_OK:
         raise CsError(status)
@@ -441,8 +436,6 @@ def cs_disasm_lite(arch, mode, code, offset, count=0):
         if status != CS_ERR_OK:
             raise CsError(status)
         return
-        yield
-
     status = _cs.cs_close(ctypes.byref(csh))
     if status != CS_ERR_OK:
         raise CsError(status)
@@ -668,11 +661,7 @@ class CsInsn(object):
         if self._raw.id == 0:
             raise CsError(CS_ERR_SKIPDATA)
 
-        c = 0
-        for op in self.operands:
-            if op.type == op_type:
-                c += 1
-        return c
+        return sum(op.type == op_type for op in self.operands)
 
     # get the operand at position @position of all operands having the same type @op_type
     def op_find(self, op_type, position):
@@ -710,12 +699,7 @@ class Cs(object):
         except:
             pass
 
-        if arch == CS_ARCH_X86:
-            # Intel syntax is default for X86
-            self._syntax = CS_OPT_SYNTAX_INTEL
-        else:
-            self._syntax = None
-
+        self._syntax = CS_OPT_SYNTAX_INTEL if arch == CS_ARCH_X86 else None
         self._detail = False  # by default, do not produce instruction details
         self._diet = cs_support(CS_SUPPORT_DIET)
         self._x86reduce = cs_support(CS_SUPPORT_X86_REDUCE)
@@ -866,7 +850,6 @@ class Cs(object):
             if status != CS_ERR_OK:
                 raise CsError(status)
             return
-            yield
 
 
     # Light function to disassemble binary. This is about 20% faster than disasm() because
@@ -891,7 +874,6 @@ class Cs(object):
             if status != CS_ERR_OK:
                 raise CsError(status)
             return
-            yield
 
 
 # print out debugging info
@@ -904,21 +886,13 @@ def debug():
         # no Cython, fallback to Python code below
         pass
 
-    if cs_support(CS_SUPPORT_DIET):
-        diet = "diet"
-    else:
-        diet = "standard"
-
+    diet = "diet" if cs_support(CS_SUPPORT_DIET) else "standard"
     archs = { "arm": CS_ARCH_ARM, "arm64": CS_ARCH_ARM64, \
         "mips": CS_ARCH_MIPS, "ppc": CS_ARCH_PPC, "sparc": CS_ARCH_SPARC, \
         "sysz": CS_ARCH_SYSZ, 'xcore': CS_ARCH_XCORE }
 
-    all_archs = ""
     keys = archs.keys()
-    for k in sorted(keys):
-        if cs_support(archs[k]):
-            all_archs += "-%s" % k
-
+    all_archs = "".join(f"-{k}" for k in sorted(keys) if cs_support(archs[k]))
     if cs_support(CS_ARCH_X86):
         all_archs += "-x86"
         if cs_support(CS_SUPPORT_X86_REDUCE):

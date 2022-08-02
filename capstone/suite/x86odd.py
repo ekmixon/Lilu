@@ -91,8 +91,8 @@ def to_hex(s):
 # ## Test cs_disasm_quick()
 def test_cs_disasm_quick():
     for (arch, mode, code, comment, syntax) in all_tests:
-        print("Platform: %s" % comment)
-        print("Code: %s" %(to_hex(code))),
+        print(f"Platform: {comment}")
+        (print(f"Code: {to_hex(code)}"), )
         print("Disasm:")
         md = Cs(arch, mode)
         if syntax != 0:

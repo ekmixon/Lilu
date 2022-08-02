@@ -34,8 +34,8 @@ else:
     LIBRARY_FILE = "libcapstone.so"
     STATIC_LIBRARY_FILE = 'libcapstone.a'
 
-compile_args = ['-O3', '-fomit-frame-pointer', '-I' + HEADERS_DIR]
-link_args = ['-L' + LIBS_DIR]
+compile_args = ['-O3', '-fomit-frame-pointer', f'-I{HEADERS_DIR}']
+link_args = [f'-L{LIBS_DIR}']
 
 ext_module_names = ['arm', 'arm_const', 'arm64', 'arm64_const', 'mips', 'mips_const', 'ppc', 'ppc_const', 'x86', 'x86_const', 'sparc', 'sparc_const', 'systemz', 'sysz_const', 'xcore', 'xcore_const']
 ext_modules = [Extension("capstone.ccapstone",
@@ -43,11 +43,15 @@ ext_modules = [Extension("capstone.ccapstone",
                          libraries=["capstone"],
                          extra_compile_args=compile_args,
                          extra_link_args=link_args)]
-ext_modules += [Extension("capstone.%s" % name,
-                          ["pyx/%s.pyx" % name],
-                          extra_compile_args=compile_args,
-                          extra_link_args=link_args)
-                for name in ext_module_names]
+ext_modules += [
+    Extension(
+        f"capstone.{name}",
+        [f"pyx/{name}.pyx"],
+        extra_compile_args=compile_args,
+        extra_link_args=link_args,
+    )
+    for name in ext_module_names
+]
 
 def clean_bins():
     shutil.rmtree(LIBS_DIR, ignore_errors=True)
@@ -61,7 +65,10 @@ def copy_pysources():
         if fname == '__init__.py':
             shutil.copy(os.path.join(PYPACKAGE_DIR, fname), os.path.join(CYPACKAGE_DIR, fname))
         else:
-            shutil.copy(os.path.join(PYPACKAGE_DIR, fname), os.path.join(CYPACKAGE_DIR, fname + 'x'))
+            shutil.copy(
+                os.path.join(PYPACKAGE_DIR, fname),
+                os.path.join(CYPACKAGE_DIR, f'{fname}x'),
+            )
 
 def build_libraries():
     """

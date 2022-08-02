@@ -23,7 +23,7 @@ class GroupTest:
         self.data = data
 
     def run(self):
-        print('Testing %s' %self.name)
+        print(f'Testing {self.name}')
         cap = Cs(self.arch, self.mode)
         for group_id in xrange(0,255):
             name = self.data.get(group_id)
@@ -228,5 +228,5 @@ if __name__ == '__main__':
         if all or t.name in args:
             t.run()
         else:
-            print('Skipping %s' %t.name)
+            print(f'Skipping {t.name}')
 

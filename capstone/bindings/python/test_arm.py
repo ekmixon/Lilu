@@ -35,8 +35,7 @@ def print_insn_detail(insn):
 
     if len(insn.operands) > 0:
         print("\top_count: %u" % len(insn.operands))
-        c = 0
-        for i in insn.operands:
+        for c, i in enumerate(insn.operands):
             if i.type == ARM_OP_REG:
                 print("\t\toperands[%u].type: REG = %s" % (c, insn.reg_name(i.reg)))
             if i.type == ARM_OP_IMM:
@@ -77,13 +76,11 @@ def print_insn_detail(insn):
             if i.subtracted:
                 print("\t\t\toperands[%u].subtracted = True" %c)
 
-            c += 1
-
     if insn.update_flags:
         print("\tUpdate-flags: True")
     if insn.writeback:
         print("\tWrite-back: True")
-    if not insn.cc in [ARM_CC_AL, ARM_CC_INVALID]:
+    if insn.cc not in [ARM_CC_AL, ARM_CC_INVALID]:
         print("\tCode condition: %u" % insn.cc)
     if insn.cps_mode:
         print("\tCPSI-mode: %u" %(insn.cps_mode))
@@ -104,8 +101,8 @@ def test_class():
 
     for (arch, mode, code, comment, syntax) in all_tests:
         print("*" * 16)
-        print("Platform: %s" % comment)
-        print("Code: %s" % to_hex(code))
+        print(f"Platform: {comment}")
+        print(f"Code: {to_hex(code)}")
         print("Disasm:")
 
         try:
@@ -118,7 +115,7 @@ def test_class():
                 print ()
             print ("0x%x:\n" % (insn.address + insn.size))
         except CsError as e:
-            print("ERROR: %s" % e)
+            print(f"ERROR: {e}")
 
 
 if __name__ == '__main__':

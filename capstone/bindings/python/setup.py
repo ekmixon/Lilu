@@ -99,7 +99,7 @@ def copy_sources():
 
     for filename in src:
         outpath = os.path.join(SRC_DIR, os.path.basename(filename))
-        log.info("%s -> %s" % (filename, outpath))
+        log.info(f"{filename} -> {outpath}")
         shutil.copy(filename, outpath)
 
 def build_libraries():
@@ -172,10 +172,11 @@ class custom_bdist_egg(bdist_egg):
 def dummy_src():
     return []
 
-cmdclass = {}
-cmdclass['build'] = custom_build
-cmdclass['sdist'] = custom_sdist
-cmdclass['bdist_egg'] = custom_bdist_egg
+cmdclass = {
+    'build': custom_build,
+    'sdist': custom_sdist,
+    'bdist_egg': custom_bdist_egg,
+}
 
 try:
     from setuptools.command.develop import develop

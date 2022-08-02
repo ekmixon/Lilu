@@ -65,11 +65,9 @@ def run_mc(arch, hexcode, option, syntax=None):
         return normalize(lines[1].strip())
 
 def test_file(fname):
-    print("Test %s" %fname);
-    f = open(fname)
-    lines = f.readlines()
-    f.close()
-
+    print(f"Test {fname}");
+    with open(fname) as f:
+        lines = f.readlines()
     if not lines[0].startswith('# '):
         print("ERROR: decoding information is missing")
         return
@@ -92,7 +90,7 @@ def test_file(fname):
         "CS_ARCH_X86": CS_ARCH_X86,
         "CS_ARCH_XCORE": CS_ARCH_XCORE,
     }
-    
+
     modes = {
         "CS_MODE_16": CS_MODE_16,
         "CS_MODE_32": CS_MODE_32,
@@ -118,7 +116,7 @@ def test_file(fname):
         "CS_MODE_MIPS64+CS_MODE_LITTLE_ENDIAN": CS_MODE_MIPS64+CS_MODE_LITTLE_ENDIAN,
         "CS_MODE_MIPS64+CS_MODE_BIG_ENDIAN": CS_MODE_MIPS64+CS_MODE_BIG_ENDIAN,
     }
-    
+
     options = {
         "CS_OPT_SYNTAX_ATT": CS_OPT_SYNTAX_ATT,
         "CS_OPT_SYNTAX_NOREGNAME": CS_OPT_SYNTAX_NOREGNAME,
@@ -148,16 +146,12 @@ def test_file(fname):
 
     #if not option in ('', 'None'):
     #    print archs[arch], modes[mode], options[option]
-    
+
     #print(arch, mode, option)
     md = Cs(archs[arch], modes[mode])
 
-    mc_option = None
-    if arch == 'CS_ARCH_X86':
-        # tell llvm-mc to use Intel syntax
-        mc_option = '-output-asm-variant=1'
-
-    if arch == 'CS_ARCH_ARM' or arch == 'CS_ARCH_PPC' :
+    mc_option = '-output-asm-variant=1' if arch == 'CS_ARCH_X86' else None
+    if arch in ['CS_ARCH_ARM', 'CS_ARCH_PPC']:
         md.syntax = CS_OPT_SYNTAX_NOREGNAME
 
     if fname.endswith('3DNow.s.cs'):
@@ -173,12 +167,9 @@ def test_file(fname):
         hex_code = code.replace('0x', '')
         hex_code = hex_code.replace(',', '')
         hex_data = hex_code.decode('hex')
-        #hex_bytes = array.array('B', hex_data)
-
-        x = list(md.disasm(hex_data, 0))
-        if len(x) > 0:
+        if x := list(md.disasm(hex_data, 0)):
             if x[0].op_str != '':
-                cs_output = "%s %s" %(x[0].mnemonic, x[0].op_str)
+                cs_output = f"{x[0].mnemonic} {x[0].op_str}"
             else:
                 cs_output = x[0].mnemonic
         else:
@@ -245,7 +236,7 @@ def test_file(fname):
         if (cs_output2 != mc_output2):
             asm = asm.replace(' ', '').strip().lower()
             if asm != cs_output2:
-                print("Mismatch: %s" %line.strip())
+                print(f"Mismatch: {line.strip()}")
                 print("\tMC = %s" %mc_output)
                 print("\tCS = %s" %cs_output)
 

@@ -483,12 +483,12 @@ def str_arch_mode(a, m):
 def test_regression(verbose):
     for (arch, mode, syntax, address, code, expected_output) in all_tests:
         #print("%s %s: %s = " %(str_arch_mode(arch, mode), str_syntax(syntax), to_hex(code)), end=""),
-        output = "%s %s: %s = " %(str_arch_mode(arch, mode), str_syntax(syntax), to_hex(code))
+        output = f"{str_arch_mode(arch, mode)} {str_syntax(syntax)}: {to_hex(code)} = "
         md = Cs(arch, mode)
         if syntax != 0:
             md.syntax = syntax
         insn = list(md.disasm(code, address))[0]
-        output2 = "%s %s" % (insn.mnemonic, insn.op_str)
+        output2 = f"{insn.mnemonic} {insn.op_str}"
         if output2 != expected_output:
             print(output, output2)
             print("\t --> ERROR: expected output = %s" %(expected_output))
